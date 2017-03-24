@@ -13,7 +13,7 @@ namespace Juraj
     {
         public override void Run()
         {
-            SetAllColors(System.Drawing.Color.HotPink);
+            SetAllColors(System.Drawing.Color.Purple);
             TurnLeft(Heading - 90);
             TurnGunRight(90);
             
@@ -22,7 +22,6 @@ namespace Juraj
                 Ahead(500);
 
                 TurnRight(90);
-
             }
         }
 

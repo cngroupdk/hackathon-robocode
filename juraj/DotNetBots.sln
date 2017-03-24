@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstRobot", "FirstRobot\FirstRobot.csproj", "{3AC9F606-A1F7-4D16-A989-730444514370}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PowerPuffPanda", "PowerPuffPanda\PowerPuffPanda.fsproj", "{AACF2282-8AC4-49D0-B187-1A23F0020F7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{3AC9F606-A1F7-4D16-A989-730444514370}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AC9F606-A1F7-4D16-A989-730444514370}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AC9F606-A1F7-4D16-A989-730444514370}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AACF2282-8AC4-49D0-B187-1A23F0020F7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AACF2282-8AC4-49D0-B187-1A23F0020F7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AACF2282-8AC4-49D0-B187-1A23F0020F7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AACF2282-8AC4-49D0-B187-1A23F0020F7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
