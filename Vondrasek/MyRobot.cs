@@ -28,7 +28,7 @@ namespace Vondrasek
         /// <param name="e"></param>
         public override void OnScannedRobot(ScannedRobotEvent e)
         {
-
+            var ShootNum = ShotIt(e);
             if (e.Velocity == 0)
             {
                 TurnRight(e.Bearing);
@@ -37,10 +37,7 @@ namespace Vondrasek
                 else
                     Fire(1);
             }
-
-            var ShootNum = ShotIt(e);
-
-            if (ShootNum == 3)
+            else if (ShootNum == 3)
             {
                 if (e.Distance < 400)
                     Fire(3);
