@@ -17,4 +17,4 @@ CN Indeed Hackathon 2017 - Ultimate Robocode Warfare
 * [ondro](ondro) (Ondrej Trubač) - red, Java
 * [michal](michal) (Michal Brič) - black, Java
 * [juraj](juraj) (Juraj Citorík) - purple, F#
-* [Vondrasek](Vondrasek) (Pavel Vondrášek) - white, C#
+* [Vondrasek](Vondrasek) (Pavel Vondrášek) - papaya whip, C#
