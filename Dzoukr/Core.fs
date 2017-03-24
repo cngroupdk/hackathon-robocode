@@ -29,13 +29,13 @@ type WallHitAlert =
     | CloseToBottom
 
 let (|WallHitAlert|_|) (config, position, heading) =
-    if position.X <= config.WallLimit then //&& isHeadingLeft heading then
+    if position.X <= config.WallLimit then
         Some CloseToLeft
-    else if position.X >= position.FieldWidth - config.WallLimit then // && isHeadingRight heading then
+    else if position.X >= position.FieldWidth - config.WallLimit then
         Some CloseToRight
-    else if position.Y <= config.WallLimit then //&& isHeadingDown heading then
+    else if position.Y <= config.WallLimit then
         Some CloseToBottom
-    else if position.Y >= position.FieldHeight - config.WallLimit then //&& isHeadingTop heading then
+    else if position.Y >= position.FieldHeight - config.WallLimit then
         Some CloseToTop
     else None
 
@@ -68,7 +68,7 @@ let calculateNextActions (robot:Robot) config  =
     | _ -> 
         [
             Move(robot.Heading, 100.); 
-            Scan(robot.RadarHeading + 45.)
+            Scan(robot.RadarHeading + 25. |> normalize)
         ]
 
 let getPowerByDistance dist = 400. / dist
@@ -88,12 +88,6 @@ let calculateHitBotActions (robot:Robot) (args:HitRobotEvent)  =
     [
         Scan(heading)
         Fire(heading, firePower)
-    ]
-
-let calculateHitByBulletActions (robot:Robot) (args:HitByBulletEvent) =
-    let fireheading = robot.Heading + args.Bearing
-    [
-        Fire(fireheading, 0.1)
     ]
 
 let effectiveTurn (heading:float) turnLeftF turnRighF newHeading =

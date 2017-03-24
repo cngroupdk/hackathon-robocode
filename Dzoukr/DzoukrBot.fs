@@ -34,9 +34,3 @@ type DzoukrBot() =
         |> applyActions this
         ()
     
-    override this.OnHitByBullet(args) =
-        args 
-        |> calculateHitByBulletActions this 
-        |> applyActions this
-        ()
-   
