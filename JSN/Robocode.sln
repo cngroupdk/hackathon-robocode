@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jsn", "Robocode\Jsn.csproj", "{D15CE4EC-158A-432A-9177-A5C00D699BBA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D15CE4EC-158A-432A-9177-A5C00D699BBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D15CE4EC-158A-432A-9177-A5C00D699BBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D15CE4EC-158A-432A-9177-A5C00D699BBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D15CE4EC-158A-432A-9177-A5C00D699BBA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
