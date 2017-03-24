@@ -1,6 +1,9 @@
 package kucera;
 import robocode.*;
-//import java.awt.Color;
+import java.awt.Color;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.stream.IntStream;
 
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
 
@@ -9,24 +12,84 @@ import robocode.*;
  */
 public class Kucera extends Robot
 {
+
+	private int OFFSET;
+	private Random rand;
+	Iterator<Integer> dist;
+	Iterator<Integer> angles;
+	int minDist = 70;
+	int maxDist = 200;
+	int borderTurn = 220;
+
 	/**
 	 * run: Kucera's default behavior
 	 */
 	public void run() {
-		// Initialization of the robot should be put here
-
-		// After trying out your robot, try uncommenting the import at the top,
-		// and the next line:
-
-		// setColors(Color.red,Color.blue,Color.green); // body,gun,radar
+		OFFSET = (int) (getBattleFieldWidth() / 8.5);
+		rand = new Random();
+		dist = rand.ints(minDist, maxDist).iterator();
+		angles = rand.ints(30, 60).iterator();
+		setColors(Color.green,Color.green,Color.green); // body,gun,radar
 
 		// Robot main loop
 		while(true) {
-			// Replace the next 4 lines with any behavior you would like
-			ahead(200);
-			turnGunRight(360);
-			back(100);
-			turnGunRight(360);
+			basicRandomizedMovement();
+		}
+	}
+
+	private void basicRandomizedMovement() {
+		int aheadDist = dist.next();
+		if (countFinalXPos(aheadDist, getX(), getHeading()) > 0 && countFinalXPos(aheadDist, getX(), getHeading()) < getBattleFieldWidth()) {
+			if (countFinalYPos(aheadDist, getY(), getHeading()) > 0 && countFinalYPos(aheadDist, getY(), getHeading()) < getBattleFieldHeight()) {
+				ahead(dist.next());
+			}
+		}
+
+		if (dist.next() > minDist + ((maxDist - minDist) /2)) {
+			turnRight(angles.next());
+		} else {
+			turnLeft(angles.next());
+		}
+
+		moveFromWall();
+	}
+
+	private int countFinalXPos(int dist, double x, double heading) {
+		System.out.println(heading);
+		double rad = Math.toRadians(heading);
+		System.out.println(rad);
+		return (int) (x + Math.sin(rad) / dist);
+	}
+
+	private int countFinalYPos(int dist, double y, double heading) {
+		double rad = Math.toRadians(heading);
+		return (int) (y + Math.cos(rad) / dist);
+	}
+
+	private void moveFromWall() {
+		//pravy okraj
+		if (getX() > getBattleFieldWidth() - OFFSET) {
+			if (getHeading() < 180) {
+				turnRight(borderTurn);
+			}
+		}
+		//levy okraj
+		if (getX() < OFFSET) {
+			if (getHeading() > 180) {
+				turnLeft(borderTurn);
+			}
+		}
+		//horni okraj
+		if (getY() > getBattleFieldHeight() - OFFSET) {
+			if (getHeading() < 90 || getHeading() > 270) {
+				turnRight(borderTurn);
+			}
+		}
+		//dolni okraj
+		if (getY() < OFFSET) {
+			if (getHeading() > 90 && getHeading() < 270) {
+				turnLeft(borderTurn);
+			}
 		}
 	}
 
@@ -43,7 +106,9 @@ public class Kucera extends Robot
 	 */
 	public void onHitByBullet(HitByBulletEvent e) {
 		// Replace the next line with any behavior you would like
-		back(10);
+		back(20);
+		turnRight(angles.next());
+		ahead(dist.next());
 	}
 	
 	/**
@@ -51,6 +116,6 @@ public class Kucera extends Robot
 	 */
 	public void onHitWall(HitWallEvent e) {
 		// Replace the next line with any behavior you would like
-		back(20);
+		back(dist.next());
 	}	
 }
