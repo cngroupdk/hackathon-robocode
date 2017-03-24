@@ -55,5 +55,20 @@ public class Movement {
 		}
 		robot.ahead(closestDistance);
 	}
-
+	
+	public static void resetGunToAttackAngle(Robot robot, boolean rightDirection){
+		if(rightDirection) {
+			robot.turnGunLeft(robot.getGunHeading() - robot.getHeading() + 270);
+		} else {
+			robot.turnGunLeft(robot.getGunHeading() - robot.getHeading() + 90);
+		}			
+	}
+	
+	public static void adjustGunToDefensePosition(Robot robot, boolean rightDirection){
+		if(rightDirection) {
+			robot.turnGunLeft(80);
+		} else {
+			robot.turnGunRight(80);
+		}		
+	}
 }
