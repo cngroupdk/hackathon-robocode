@@ -22,5 +22,6 @@ CN Indeed Hackathon 2017 - Ultimate Robocode Warfare
 
 ## battles
 * [Warm up](https://www.youtube.com/watch?v=nU-vi9JnBcA) - [results](battle%20results/battle_at_1PM.csv)
+* [Final](https://www.youtube.com/watch?v=C56u6GwZ0gs) - [results](battle%20results/battle_at_5PM.csv)
 
 See additional content in the [media](media) folder.
