@@ -9,14 +9,16 @@ import static robocode.util.Utils.normalRelativeAngleDegrees;
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
 
 /**
- * Kucera - a robot by (your name here)
+ * KuceraImproved - a robot by (your name here)
  */
-public class Kucera extends Robot
+public class KuceraImproved extends Robot
 {
 
-	private static final double ROBOT_CLOSE = 150;
+	private static final double ROBOT_CLOSE = 300;
 	private static final double ROBOT_FAR_AWAY = 600;
-	private static final double ROBOT_CLOSER = 100;
+	private static final double ROBOT_CLOSER = 200;
+	private static final long LAST_HIT = 100;
+	private final int LAST_SCANNED = 150;
 	private int OFFSET;
 	private Random rand;
 	Iterator<Integer> dist;
@@ -33,7 +35,7 @@ public class Kucera extends Robot
 	private long lastScannedTime = 0;
 
 	/**
-	 * run: Kucera's default behavior
+	 * run: KuceraImproved's default behavior
 	 */
 	public void run() {
 		lastHitBy = null;
@@ -45,14 +47,14 @@ public class Kucera extends Robot
 		borderAngles = rand.ints(140, 220).iterator();
 		setColors(Color.green,Color.green,Color.red); // body,gun,radar
 
-		setAdjustGunForRobotTurn(true);
+//		setAdjustGunForRobotTurn(true);
 
 		// Robot main loop
 		while(true) {
-			if (lastHitByTime < getTime() - 100) {
+			if (lastHitByTime < getTime() - LAST_HIT) {
 				lastHitBy = null;
 			}
-			if (lastScannedTime < getTime() - 100) {
+			if (lastScannedTime < getTime() - LAST_SCANNED) {
 				lastScanned = null;
 			}
 			basicRandomizedMovement();
@@ -79,15 +81,15 @@ public class Kucera extends Robot
 	}
 
 	private void performScan() {
-//		if (lastScanned != null) {
-//			turnGunToLastScanned();
-//		} else {
+		if (lastScanned != null) {
+			turnGunToLastScanned();
+		} else {
 			turnGunRight(360);
-//		}
+		}
 	}
 
 	private void turnGunToLastScanned() {
-		turnGunToWithOffset(lastScannedX, lastScannedY, 30);
+		turnGunToWithOffset(lastScannedX, lastScannedY, 45);
 	}
 
 	private void turnGunToWithOffset(double x, double y, int offset) {
@@ -119,7 +121,7 @@ public class Kucera extends Robot
 	}
 
 	private void moveAhead() {
-		ahead(getMinimalMovableDistance(false) / 3);
+		ahead(getMinimalMovableDistance(false) / 2.5);
 	}
 
 	private void moveBack() {
@@ -189,22 +191,24 @@ public class Kucera extends Robot
 
 
 		if (e.getDistance() < ROBOT_CLOSER) {
+			fire(3);
 			double gunTurnAmt = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
 			turnGunRight(gunTurnAmt);
-			fire(3);
 		} else if (e.getDistance() < ROBOT_CLOSE) {
+			fire(2);
+
 			//adjustGunToRobot(e.getHeading(), e.getDistance(), e.getVelocity());
 			double gunTurnAmt = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
 			turnGunRight(gunTurnAmt);
-			fire(2);
 		} else if (e.getDistance() > ROBOT_FAR_AWAY ) {
 			//nothing
 			moveAheadRandomized();
 			return;
 		} else {
+			fire(1);
+
 			double gunTurnAmt = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
 			turnGunRight(gunTurnAmt);
-			fire(1);
 		}
 		moveAheadRandomized();
 	}
@@ -223,16 +227,20 @@ public class Kucera extends Robot
 	public void onHitByBullet(HitByBulletEvent e) {
 		this.lastHitBy = e;
 		this.lastHitByTime = getTime();
+
 		if (rand.nextBoolean()) {
-			turnRight(e.getBearing() + 50 + angles.next());
+			turnRight(50 + angles.next());
 		} else {
-			turnLeft(e.getBearing() + 50 + angles.next());
+			turnLeft( + 50 + angles.next());
 		}
 		moveAheadRandomized();
 	}
 
 	@Override
 	public void onHitRobot(HitRobotEvent event) {
+		double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
+		turnGunRight(gunTurnAmt);
+		fire(3);
 		moveBack();
 	}
 
