@@ -102,6 +102,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="DzoukrBot.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
