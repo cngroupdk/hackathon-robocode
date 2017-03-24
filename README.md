@@ -1,7 +1,7 @@
 # hackathon-robocode
 CN Indeed Hackathon 2017 - Ultimate Robocode Warfare
 
-[Kick off intro](roboIntro.html)
+[Kick off intro](roboIntro.md)
 
 ## organisation of the hackathon
 * 09.00 - 10.00 Kick-off and introduction
