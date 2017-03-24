@@ -77,7 +77,7 @@ namespace DPI_bot
                 Console.WriteLine("Escaping ram");
                 Dodge(evnt.Bearing);
             }
-            else if (isAimingAtMe() || evnt.Velocity < 1 || evnt.Distance<250)
+            else if (isAimingAtMe() || evnt.Velocity < 1 || evnt.Distance<150)
             {
                 TurnGunRight(evnt.Bearing - GunBearing);
                 Console.WriteLine("shooting slow target");
@@ -92,7 +92,12 @@ namespace DPI_bot
             Scan();
         }
 
-
+        public override void OnHitWall(HitWallEvent evnt)
+        {
+            Stop();
+            TurnRight(180);
+            Resume();
+        }
 
         public override void OnHitRobot(HitRobotEvent evnt)
         {
