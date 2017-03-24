@@ -9,22 +9,50 @@ public class HeavyDuty extends Robot
 	boolean hitWallFlag;
 	double lastBearingToWall;
 	
+	boolean fightingOtherRobotFlag;
+	//double lastBearingToRobotHit;
+	
+	boolean bulletMissedOtherRobotFlag;
+	
+	boolean enemySpottedThisRound;
+	
+	
+	//todo sprav metodu launchFire podla vzdialenosti protivnika a svojej energie
 	public void run() {
 		
 		// INITIALIZATION
 		setColors(Color.red,Color.blue,Color.green); // body,gun,radar
-		hitWallFlag = true;
+		hitWallFlag = false;
 		lastBearingToWall = 0;
+		
+		fightingOtherRobotFlag = false;
+		//lastBearingToRobotHit = 0;
+
+		bulletMissedOtherRobotFlag = false;
+		enemySpottedThisRound = false;
 		
 		turnGunRight(90);
 		Movement.goToClosestWall(this);		
 		
 		//MAIN LOOP
 		while(true) {
-			if(hitWallFlag){
+			if(hitWallFlag && !fightingOtherRobotFlag){
 				hitWallFlag = false;
 				turnRight(90 - lastBearingToWall);
 				ahead(getBattleFieldWidth());
+			} 
+			else if(fightingOtherRobotFlag){
+				turnGunLeft(45);
+				turnGunRight(45);
+				back(30);
+				//Utils.fireOnTarget();
+//				fire(Utils.getMaximumFirePower(this));
+				if(bulletMissedOtherRobotFlag || !enemySpottedThisRound){
+					fightingOtherRobotFlag = false;
+					turnGunRight(getHeading() - getGunHeading() + 90);
+					Movement.goToClosestWall(this);
+				}
+				enemySpottedThisRound = false;
 			}
 		}
 	}
@@ -32,19 +60,29 @@ public class HeavyDuty extends Robot
 	@Override
 	public void onHitRobot(HitRobotEvent event) {
 		super.onHitRobot(event);
-	}
-	
-	@Override
-	public void onScannedRobot(ScannedRobotEvent event) {
-		super.onScannedRobot(event);
-		fire(1);
-		
+		fightingOtherRobotFlag = true;
+		//lastBearingToRobotHit = event.getBearing();
+		stop(true);
+		back(10);
+		turnGunLeft(90 - event.getBearing() - 25);
 	}
 	
 	public void onHitWall(HitWallEvent event) {
 		super.onHitWall(event);
 		hitWallFlag = true;
 		lastBearingToWall = event.getBearing();
+	}
+
+	@Override
+	public void onScannedRobot(ScannedRobotEvent event) {
+		super.onScannedRobot(event);
+		enemySpottedThisRound = true;
+		fire(1);
+		if(fightingOtherRobotFlag){
+			fire(Utils.getMaximumFirePower(this));
+		} else {
+			fire(1.0);
+		}
 
 	}
 	
@@ -53,8 +91,15 @@ public class HeavyDuty extends Robot
 		super.onBulletHit(event);
 	}
 	
+	@Override
 	public void onHitByBullet(HitByBulletEvent event) {
 		super.onHitByBullet(event);
+	}
+	
+	@Override
+	public void onBulletMissed(BulletMissedEvent event) {
+		super.onBulletMissed(event);
+		bulletMissedOtherRobotFlag = true;
 	}
 	
 	
