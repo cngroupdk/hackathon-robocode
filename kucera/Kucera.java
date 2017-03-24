@@ -13,13 +13,16 @@ import java.util.stream.IntStream;
 public class Kucera extends Robot
 {
 
+	private static final double ROBOT_CLOSE = 150;
 	private int OFFSET;
 	private Random rand;
 	Iterator<Integer> dist;
 	Iterator<Integer> angles;
+	Iterator<Integer> borderAngles;
 	int minDist = 70;
-	int maxDist = 200;
+	int maxDist = 250;
 	int borderTurn = 220;
+	private ScannedRobotEvent lastScanned;
 
 	/**
 	 * run: Kucera's default behavior
@@ -29,6 +32,7 @@ public class Kucera extends Robot
 		rand = new Random();
 		dist = rand.ints(minDist, maxDist).iterator();
 		angles = rand.ints(30, 60).iterator();
+		borderAngles = rand.ints(140, 220).iterator();
 		setColors(Color.green,Color.green,Color.green); // body,gun,radar
 
 		// Robot main loop
@@ -38,20 +42,44 @@ public class Kucera extends Robot
 	}
 
 	private void basicRandomizedMovement() {
-		int aheadDist = dist.next();
-		if (countFinalXPos(aheadDist, getX(), getHeading()) > 0 && countFinalXPos(aheadDist, getX(), getHeading()) < getBattleFieldWidth()) {
-			if (countFinalYPos(aheadDist, getY(), getHeading()) > 0 && countFinalYPos(aheadDist, getY(), getHeading()) < getBattleFieldHeight()) {
-				ahead(dist.next());
-			}
-		}
+		moveAhead();
+		turnGunRight(360);
 
-		if (dist.next() > minDist + ((maxDist - minDist) /2)) {
+		if (rand.nextBoolean()) {
 			turnRight(angles.next());
 		} else {
 			turnLeft(angles.next());
 		}
-
 		moveFromWall();
+
+		//todo movement from the enemies
+	}
+
+	private void moveAhead() {
+		int aheadDist = dist.next();
+		if (isValidFinalPosition(aheadDist)) {
+			ahead(aheadDist);
+		} else {
+			ahead(getMinimalMovableDistance());
+		}
+	}
+
+	private void moveBack() {
+		int aheadDist = dist.next();
+		if (isValidFinalPosition((-1)*aheadDist)) {
+			back(aheadDist);
+		} else {
+			back(getMinimalMovableDistance());
+		}
+	}
+
+	private boolean isValidFinalPosition(int aheadDist) {
+		if (countFinalXPos(aheadDist, getX(), getHeading()) > 0 && countFinalXPos(aheadDist, getX(), getHeading()) < getBattleFieldWidth()) {
+			if (countFinalYPos(aheadDist, getY(), getHeading()) > 0 && countFinalYPos(aheadDist, getY(), getHeading()) < getBattleFieldHeight()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private int countFinalXPos(int dist, double x, double heading) {
@@ -70,25 +98,25 @@ public class Kucera extends Robot
 		//pravy okraj
 		if (getX() > getBattleFieldWidth() - OFFSET) {
 			if (getHeading() < 180) {
-				turnRight(borderTurn);
+				turnRight(borderAngles.next());
 			}
 		}
 		//levy okraj
 		if (getX() < OFFSET) {
 			if (getHeading() > 180) {
-				turnLeft(borderTurn);
+				turnLeft(borderAngles.next());
 			}
 		}
 		//horni okraj
 		if (getY() > getBattleFieldHeight() - OFFSET) {
 			if (getHeading() < 90 || getHeading() > 270) {
-				turnRight(borderTurn);
+				turnRight(borderAngles.next());
 			}
 		}
 		//dolni okraj
 		if (getY() < OFFSET) {
 			if (getHeading() > 90 && getHeading() < 270) {
-				turnLeft(borderTurn);
+				turnLeft(borderAngles.next());
 			}
 		}
 	}
@@ -97,8 +125,14 @@ public class Kucera extends Robot
 	 * onScannedRobot: What to do when you see another robot
 	 */
 	public void onScannedRobot(ScannedRobotEvent e) {
-		// Replace the next line with any behavior you would like
-		fire(1);
+		//todo dont shoot if they are too far awyay
+		//adjust shooting by velocity and heading
+		this.lastScanned = e;
+		if (e.getDistance() < ROBOT_CLOSE) {
+			fire(2.5);
+		} else {
+			fire(1);
+		}
 	}
 
 	/**
@@ -106,9 +140,12 @@ public class Kucera extends Robot
 	 */
 	public void onHitByBullet(HitByBulletEvent e) {
 		// Replace the next line with any behavior you would like
-		back(20);
-		turnRight(angles.next());
-		ahead(dist.next());
+		if (rand.nextBoolean()) {
+			turnRight(e.getBearing() + 50 + angles.next());
+		} else {
+			turnLeft(e.getBearing() + 50 + angles.next());
+		}
+		moveAhead();
 	}
 	
 	/**
@@ -116,6 +153,23 @@ public class Kucera extends Robot
 	 */
 	public void onHitWall(HitWallEvent e) {
 		// Replace the next line with any behavior you would like
-		back(dist.next());
-	}	
+		turnRight(180);
+		moveAhead();
+	}
+
+	public double getMinimalMovableDistance() {
+		return Math.min(getMinimalXDistance(), getMinimalYDistance());
+	}
+
+	public double getMinimalXDistance() {
+		double dif;
+		dif = Math.abs(getBattleFieldWidth() - getX());
+		return dif / Math.sin(Math.toRadians(getHeading()));
+	}
+
+	public double getMinimalYDistance() {
+		double dif;
+		dif = Math.abs(getBattleFieldHeight() - getY());
+		return dif / Math.cos(Math.toRadians(getHeading()));
+	}
 }
