@@ -27,24 +27,32 @@ namespace Vondrasek
         /// </summary>
         /// <param name="e"></param>
         public override void OnScannedRobot(ScannedRobotEvent e)
-        {            
-            TurnRight(e.Bearing);  
-          
-            
-
-            if (e.Distance < 300)
+        {  
+            if (ShotIt(e))
             {
-                if (e.Distance < 150)
+                TurnRight(e.Bearing);
+                if (e.Distance < 300)
                 {
-                    if (Energy > 20)
-                        Fire(3);
+                    if (e.Distance < 150)
+                    {
+                        if (Energy > 20)
+                            Fire(3);
+                        else
+                            Fire(1);
+                    }
                     else
                         Fire(1);
                 }
-                else
-                    Fire(1);
-            }    
+            }
+            else
+            {
+                TurnRight(e.Bearing);
+            }
+            
             Ahead(100);
+
+           
+            
         }
 
         /// <summary>
@@ -71,19 +79,49 @@ namespace Vondrasek
         /// <param name="evnt"></param>
         public override void OnHitRobot(HitRobotEvent e)
         {
-
-
-            TurnRight(e.Bearing);
-
-            if (Energy > 20)
+            if (e.Bearing < 5 && e.Bearing > -5)
+            {
                 Fire(3);
+                Ahead(40);
+            }
+            else if (e.Bearing < 45 && e.Bearing > -45)
+            {
+                TurnRight(e.Bearing);
+                Fire(3);
+                Ahead(40);
+            }
             else
-                Fire(1);
-
-            Back(2);
-            Ahead(40);
+            {
+                Back(20);
+            }              
 
             base.OnHitRobot(e);
+        }
+
+        bool ShotIt(ScannedRobotEvent e)
+        {
+           
+
+            if (e.Bearing < 45 && e.Bearing > -45)
+            {
+                if (GoingTogether(e))
+                    return true;
+
+                if (e.Velocity < 6)
+                    return true;              
+            }
+            return false;
+        }
+
+        bool GoingTogether(ScannedRobotEvent e)
+        {
+            if (e.Heading - Heading < 30 && e.Heading - Heading > -30)
+                return true;
+            if (e.Heading - Heading < 180 && e.Heading - Heading > 150)
+                return true;
+            if (e.Heading - Heading < -150 && e.Heading - Heading > -180)
+                return true;
+            return false;
         }
     }
 }
