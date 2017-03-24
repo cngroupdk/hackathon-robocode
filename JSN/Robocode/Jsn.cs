@@ -28,72 +28,80 @@ namespace Jsn
 
             while (true)
             {
-                _position.Update(X, Y);
                 // scan surroundings
+                _position.Update(X, Y);
                 TurnRadarRight(_scanRange * _strafeDirection);
                 _lockedTarget = GetClosestTarget();
-
-                var firePower = Math.Min(500 / _lockedTarget.Distance, 3);
-                if (_lockedTarget.Velocity < 0.5 || _lockedTarget.Distance < 50) firePower = 3;
-                var bulletSpeed = 20 - firePower * 3;
-                var time = (long)(_lockedTarget.Distance / bulletSpeed);
-                var futurePosition = _lockedTarget.GetFuturePosition(time);
-                _desiredGunBearingDiff = NormalizeBearing(_position.GetAbsoluteBearing(futurePosition) - GunHeading);
-
-                TurnGunRight(_desiredGunBearingDiff);
-                if (GunHeat < 0.1)
+                if (_lockedTarget != null)
                 {
-                    Fire(firePower);
-                }
+                    // fire
+                    var firePower = Math.Min(500 / _lockedTarget.Distance, 3);
+                    if (_lockedTarget.Velocity < 0.5 || _lockedTarget.Distance < 50) firePower = 3;
+                    var bulletSpeed = 20 - firePower * 3;
+                    var time = (long) (_lockedTarget.Distance / bulletSpeed);
+                    var futurePosition = _lockedTarget.GetFuturePosition(time);
+                    _desiredGunBearingDiff = NormalizeBearing(_position.GetAbsoluteBearing(futurePosition) - GunHeading);
 
-                // base of number of oponents choose movement strategy
-                if (Others > 3)
-                {
-                    // edges
-                    if (AmICloseToWall())
+                    TurnGunRight(_desiredGunBearingDiff);
+                    if (GunHeat < 0.1)
                     {
-                        var quadrant = _position.GetQuadrant(BattleFieldHeight, BattleFieldWidth);
-                        switch (quadrant)
-                        {
-                            case Quadrant.Ne:
-                                _desiredHeading = 270;
-                                break;
-                            case Quadrant.Nw:
-                                _desiredHeading = 180;
-                                break;
-                            case Quadrant.Se:
-                                _desiredHeading = 0;
-                                break;
-                            case Quadrant.Sw:
-                                _desiredHeading = 90;
-                                break;
-                        }
+                        Fire(firePower);
                     }
-                    _desiredHeading += GetRandomNumber(-10, 10);
-
-                    TurnRight(NormalizeBearing(_desiredHeading - Heading));
-                    Ahead(185);
                 }
-                else
-                {
-                    // strafe closing in
-                    WallMargin = 130;
-                    _scanRange = 45;
 
+                Movement();
+            }
+        }
+
+        private void Movement()
+        {
+            // base of number of oponents choose movement strategy
+            if (Others > 3)
+            {
+                // edges
+                if (AmICloseToWall())
+                {
+                    var quadrant = _position.GetQuadrant(BattleFieldHeight, BattleFieldWidth);
+                    switch (quadrant)
+                    {
+                        case Quadrant.Ne:
+                            _desiredHeading = 270;
+                            break;
+                        case Quadrant.Nw:
+                            _desiredHeading = 180;
+                            break;
+                        case Quadrant.Se:
+                            _desiredHeading = 0;
+                            break;
+                        case Quadrant.Sw:
+                            _desiredHeading = 90;
+                            break;
+                    }
+                }
+                _desiredHeading += GetRandomNumber(-10, 10);
+
+                TurnRight(NormalizeBearing(_desiredHeading - Heading));
+                Ahead(185);
+            }
+            else
+            {
+                // strafe closing in
+                WallMargin = 130;
+                _scanRange = 45;
+
+                if (_lockedTarget != null)
+                {
                     var turnDeg = _lockedTarget.Bearing + 90 - (15 * _strafeDirection);
                     TurnRight(NormalizeBearing(turnDeg));
                     Ahead(GetRandomNumber(100, 220) * _strafeDirection);
                     _strafeDirection *= -1;
-
-                    if (AmICloseToWall())
-                    {
-                        TurnRight(_position.GetAbsoluteBearing(new Position(BattleFieldWidth / 2, BattleFieldHeight / 2)) - Heading);
-                        Ahead(250);
-                    }
-
                 }
 
-
+                if (AmICloseToWall())
+                {
+                    TurnRight(_position.GetAbsoluteBearing(new Position(BattleFieldWidth / 2, BattleFieldHeight / 2)) - Heading);
+                    Ahead(250);
+                }
             }
         }
 
@@ -128,12 +136,6 @@ namespace Jsn
             return normalizedBearing;
         }
 
-        private void CleanupTargets()
-        {
-            // remove targets not scanned in last couple turns
-            // remap targets which returned to field of view by name if possible
-        }
-
         private bool AmICloseToWall()
         {
             return (_position.X < WallMargin ||
@@ -165,10 +167,18 @@ namespace Jsn
 
         private Target GetClosestTarget()
         {
-            var minDist = _targets.Values.Min(t => t.Distance);
-            return _targets.Values.First(a => a.Distance.Equals(minDist));
+            if (_targets.Count > 0)
+            {
+                var minDist = _targets.Values.Min(t => t.Distance);
+                return _targets.Values.First(a => a.Distance.Equals(minDist));
+            }
+            return null;
         }
 
-
+        public override void OnHitRobot(HitRobotEvent e)
+        {
+            _targets.TryGetValue(e.Name, out _lockedTarget);
+            Movement();
+        }
     }
 }
