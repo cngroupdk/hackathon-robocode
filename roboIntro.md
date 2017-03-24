@@ -1,21 +1,4 @@
 <html>
-<head>
-  <style>
-    .content {
-      margin: auto;
-      width:600px;
-      font-size:18px;
-      line-height: 1.5;
-    }
-    h1 {
-      text-align: center;
-      font-size: 64px;
-      font-family: Consolas, monaco, monospace;
-    }
-
-
-  </style>
-</head>
 <body>
 <div class="content">
 <h1><span style="color: #CA224A">CN</span> Battle of Devs</h1>
