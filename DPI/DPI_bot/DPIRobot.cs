@@ -27,7 +27,7 @@ namespace DPI_bot
         {
             //TurnRight(evnt.Bearing);
             TurnGunRight(evnt.Bearing-GunBearing);
-            if (GunHeat<0.1)
+            if (GunHeat<0.1 && !EmergencyMode)
             {
                 if (evnt.Distance < 300 && evnt.Velocity<0.5)
                 {
@@ -35,10 +35,10 @@ namespace DPI_bot
                 }
                 else
                 {
-                    Fire(1);
+                    Fire(Rules.MIN_BULLET_POWER);
                 }
             }
-            TurnRight(rand.Next(0,360)-160);
+            TurnRight(rand.Next(0,360)-180);
             AheadNotIntoWall(150);
         }
 
