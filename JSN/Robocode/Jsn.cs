@@ -10,13 +10,14 @@ namespace Jsn
 {
     public class Jsn : Robot
     {
-        public const double WallMargin = 200;
+        public double WallMargin = 200;
         private Dictionary<string, Target> _targets = new Dictionary<string, Target>();
         private Position _position = new Position();
         private double _desiredHeading = 0;
         private int _strafeDirection = 1;
         private Target _lockedTarget;
-        private double _desiredGunHeading;
+        private double _desiredGunBearingDiff;
+        private int _scanRange = 180;
 
         public override void Run()
         {
@@ -29,10 +30,21 @@ namespace Jsn
             {
                 _position.Update(X, Y);
                 // scan surroundings
-                TurnRadarRight(360);
+                TurnRadarRight(_scanRange * _strafeDirection);
                 _lockedTarget = GetClosestTarget();
 
-                // move out of way of bullets
+                var firePower = Math.Min(500 / _lockedTarget.Distance, 3);
+                if (_lockedTarget.Velocity < 0.5 || _lockedTarget.Distance < 50) firePower = 3;
+                var bulletSpeed = 20 - firePower * 3;
+                var time = (long)(_lockedTarget.Distance / bulletSpeed);
+                var futurePosition = _lockedTarget.GetFuturePosition(time);
+                _desiredGunBearingDiff = NormalizeBearing(_position.GetAbsoluteBearing(futurePosition) - GunHeading);
+
+                TurnGunRight(_desiredGunBearingDiff);
+                if (GunHeat < 0.1)
+                {
+                    Fire(firePower);
+                }
 
                 // base of number of oponents choose movement strategy
                 if (Others > 3)
@@ -57,6 +69,7 @@ namespace Jsn
                                 break;
                         }
                     }
+                    _desiredHeading += GetRandomNumber(-10, 10);
 
                     TurnRight(NormalizeBearing(_desiredHeading - Heading));
                     Ahead(185);
@@ -64,24 +77,35 @@ namespace Jsn
                 else
                 {
                     // strafe closing in
-                    _desiredHeading = (Heading - RadarHeading + _lockedTarget.Bearing + 90 - 15);
-                    TurnRight(NormalizeBearing(_desiredHeading * _strafeDirection));
-                    Ahead(GetRandomNumber(50, 120));
+                    WallMargin = 130;
+                    _scanRange = 45;
+
+                    var turnDeg = _lockedTarget.Bearing + 90 - (15 * _strafeDirection);
+                    TurnRight(NormalizeBearing(turnDeg));
+                    Ahead(GetRandomNumber(100, 220) * _strafeDirection);
                     _strafeDirection *= -1;
+
+                    if (AmICloseToWall())
+                    {
+                        TurnRight(_position.GetAbsoluteBearing(new Position(BattleFieldWidth / 2, BattleFieldHeight / 2)) - Heading);
+                        Ahead(250);
+                    }
+
                 }
 
-                _desiredGunHeading = NormalizeBearing(Heading - RadarHeading + _lockedTarget.Bearing);
-                TurnGunRight(_desiredHeading);
-
-                if (GunHeat < 0.1 && Math.Abs(GunHeading -_desiredHeading) < 1)
-                {
-                    var firePower = Math.Min(500 / _lockedTarget.Distance, 3);
-                    var bulletSpeed = 20 - firePower * 3;
-                    var time = (long)(_lockedTarget.Distance / bulletSpeed);
-                    Fire(firePower);
-                }
 
             }
+        }
+
+
+        public static double RadToDeg(double angle)
+        {
+            return angle * (180.0 / Math.PI);
+        }
+
+        public static double DegToRad(double angle)
+        {
+            return Math.PI * angle / 180.0;
         }
 
         public double GetRandomNumber(double minimum, double maximum)
@@ -141,7 +165,8 @@ namespace Jsn
 
         private Target GetClosestTarget()
         {
-            return _targets.First(a => a.Value.Distance == _targets.Values.Min(t => t.Distance)).Value;
+            var minDist = _targets.Values.Min(t => t.Distance);
+            return _targets.Values.First(a => a.Distance.Equals(minDist));
         }
 
 
