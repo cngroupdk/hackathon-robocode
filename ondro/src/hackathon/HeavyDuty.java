@@ -2,57 +2,56 @@ package hackathon;
 import java.awt.Color;
 
 import robocode.*;
-// API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
 
 public class HeavyDuty extends Robot
 {
+	public boolean rightDirection;
 	boolean hitWallFlag;
 	double lastBearingToWall;
-	
 	boolean fightingOtherRobotFlag;
-	//double lastBearingToRobotHit;
+	int fightIncrement;
 	
-	boolean bulletMissedOtherRobotFlag;
-	
-	boolean enemySpottedThisRound;
-	
-	
-	//todo sprav metodu launchFire podla vzdialenosti protivnika a svojej energie
 	public void run() {
 		
 		// INITIALIZATION
-		setColors(Color.red,Color.blue,Color.green); // body,gun,radar
-		hitWallFlag = false;
-		lastBearingToWall = 0;
-		
-		fightingOtherRobotFlag = false;
-		//lastBearingToRobotHit = 0;
-
-		bulletMissedOtherRobotFlag = false;
-		enemySpottedThisRound = false;
-		
+		initRobot();
+	
 		turnGunRight(90);
 		Movement.goToClosestWall(this);		
-		
+			
 		//MAIN LOOP
 		while(true) {
-			if(hitWallFlag && !fightingOtherRobotFlag){
+			//RIDING AROUND
+			 if(hitWallFlag){
 				hitWallFlag = false;
-				turnRight(90 - lastBearingToWall);
-				ahead(getBattleFieldWidth());
+				if(rightDirection){
+					turnRight(90 - lastBearingToWall);
+					ahead(getBattleFieldWidth());
+				} else {
+					turnLeft(90 - lastBearingToWall);
+					ahead(getBattleFieldWidth());
+				}
 			} 
-			else if(fightingOtherRobotFlag){
-				turnGunLeft(45);
-				turnGunRight(45);
+			
+			//FIGHTING
+			else if(fightingOtherRobotFlag && fightIncrement < 4){
+				fightIncrement++;
+				if(rightDirection){
+					turnGunLeft(45);
+					turnGunRight(45);					
+				} else{
+					turnGunRight(45);
+					turnGunLeft(45);
+				}
 				back(30);
-				//Utils.fireOnTarget();
-//				fire(Utils.getMaximumFirePower(this));
-				if(bulletMissedOtherRobotFlag || !enemySpottedThisRound){
+				
+				//ENDING FIGHT
+				if(fightIncrement >= 3){
+					fightIncrement = 0;
 					fightingOtherRobotFlag = false;
-					turnGunRight(getHeading() - getGunHeading() + 90);
+					turnRight(180);
 					Movement.goToClosestWall(this);
 				}
-				enemySpottedThisRound = false;
 			}
 		}
 	}
@@ -60,77 +59,40 @@ public class HeavyDuty extends Robot
 	@Override
 	public void onHitRobot(HitRobotEvent event) {
 		super.onHitRobot(event);
-		fightingOtherRobotFlag = true;
-		//lastBearingToRobotHit = event.getBearing();
 		stop(true);
 		back(10);
-		turnGunLeft(90 - event.getBearing() - 25);
+		Movement.adjustGunToDefensePosition(this, rightDirection);
+		
+		fightingOtherRobotFlag = true;
+		rightDirection = !rightDirection;
 	}
 	
 	public void onHitWall(HitWallEvent event) {
 		super.onHitWall(event);
 		hitWallFlag = true;
-		lastBearingToWall = event.getBearing();
+		Movement.resetGunToAttackAngle(this, rightDirection);	
+		cancelFight(event);
 	}
-
+	
 	@Override
 	public void onScannedRobot(ScannedRobotEvent event) {
 		super.onScannedRobot(event);
-		enemySpottedThisRound = true;
-		fire(1);
-		if(fightingOtherRobotFlag){
-			fire(Utils.getMaximumFirePower(this));
-		} else {
-			fire(1.0);
-		}
-
+		fire(Utils.getFirePower(this, event));
 	}
 	
-	@Override
-	public void onBulletHit(BulletHitEvent event) {
-		super.onBulletHit(event);
-	}
-	
-	@Override
-	public void onHitByBullet(HitByBulletEvent event) {
-		super.onHitByBullet(event);
-	}
-	
-	@Override
-	public void onBulletMissed(BulletMissedEvent event) {
-		super.onBulletMissed(event);
-		bulletMissedOtherRobotFlag = true;
-	}
-	
-	
-	
-	
-	
-	
-	
-	//Provides robot's current state
-	@Override
-	public void onStatus(StatusEvent event) {
-		super.onStatus(event);
-		RobotStatus robotStatus = event.getStatus();
-		robotStatus.getEnergy();
-		robotStatus.getHeading();	//toto pouzi na vypocitanie pozicie v ramci okna
-									//telo sa bude hybat organizovane, hlaven sa ale bude zameriavat na nepriatelov
-		robotStatus.getEnergy();	//podla tohoto upravuj silu strely
-		robotStatus.getGunHeat();	//podla tohoto upravuj silu strely
+	private void initRobot(){
+		setColors(Color.red,Color.red,Color.red); // body,gun,radar
 		
-		robotStatus.getNumSentries();	//neviem co je sentry, potrebujes ale pocet robotov v arene, podla nich
-										//uprav strategiu
-										//menej ako 4, zameraj sa na konkretneho robota,
-										//4 a viac, utekaj k stene a strielaj po najblizsom
-		robotStatus.getOthers();		// -||-
-
-		robotStatus.getRadarHeading();	//rozmysli si, ci chces otacat radar spolu s hlavnou, alebo nie
-		robotStatus.getVelocity();
+		rightDirection = true;
+		hitWallFlag = false;
+		lastBearingToWall = 0;
+		fightingOtherRobotFlag = false;
+		fightIncrement = 0;
 	}
 	
-	@Override
-	public void onWin(WinEvent event) {
-		super.onWin(event);
+	private void cancelFight(HitWallEvent event){
+		fightingOtherRobotFlag = false;	
+		fightIncrement = 0;
+		lastBearingToWall = event.getBearing();
 	}
 }
