@@ -32,7 +32,7 @@ namespace Vondrasek
             if (e.Velocity == 0)
             {
                 TurnRight(e.Bearing);
-                if (e.Distance < 400)
+                if (e.Distance < 200)
                     Fire(3);
                 else
                     Fire(1);
@@ -90,7 +90,16 @@ namespace Vondrasek
             if (e.Bearing < 5 && e.Bearing > -5)
             {
                 Fire(3);
-                Ahead(40);
+                Fire(3);
+                Fire(3);
+                Ahead(10);
+            }
+            else if (e.Bearing > 175 && e.Bearing < -175)
+            {
+                Fire(3);
+                Fire(3);
+                Fire(3);
+                Ahead(100);
             }
             else if (e.Bearing < 45 && e.Bearing > -45)
             {
