@@ -14,6 +14,7 @@ public class Kucera extends Robot
 {
 
 	private static final double ROBOT_CLOSE = 150;
+	private static final double ROBOT_FAR_AWAY = 400;
 	private int OFFSET;
 	private Random rand;
 	Iterator<Integer> dist;
@@ -22,7 +23,7 @@ public class Kucera extends Robot
 	int minDist = 70;
 	int maxDist = 250;
 	int borderTurn = 220;
-	private ScannedRobotEvent lastScanned;
+	private ScannedRobotEvent lastScanned = null;
 
 	/**
 	 * run: Kucera's default behavior
@@ -45,14 +46,23 @@ public class Kucera extends Robot
 		moveAhead();
 		turnGunRight(360);
 
-		if (rand.nextBoolean()) {
-			turnRight(angles.next());
-		} else {
-			turnLeft(angles.next());
-		}
+		turn();
 		moveFromWall();
+	}
 
-		//todo movement from the enemies
+	private void turn() {
+		double offset;
+		if (lastScanned != null) {
+			offset = lastScanned.getBearing() + 180;
+		} else {
+			offset = 0;
+		}
+
+		if (rand.nextBoolean()) {
+			turnRight(angles.next() + offset);
+		} else {
+			turnLeft(angles.next() + offset);
+		}
 	}
 
 	private void moveAhead() {
@@ -82,14 +92,12 @@ public class Kucera extends Robot
 		return false;
 	}
 
-	private int countFinalXPos(int dist, double x, double heading) {
-		System.out.println(heading);
+	private int countFinalXPos(double dist, double x, double heading) {
 		double rad = Math.toRadians(heading);
-		System.out.println(rad);
 		return (int) (x + Math.sin(rad) / dist);
 	}
 
-	private int countFinalYPos(int dist, double y, double heading) {
+	private int countFinalYPos(double dist, double y, double heading) {
 		double rad = Math.toRadians(heading);
 		return (int) (y + Math.cos(rad) / dist);
 	}
@@ -125,14 +133,56 @@ public class Kucera extends Robot
 	 * onScannedRobot: What to do when you see another robot
 	 */
 	public void onScannedRobot(ScannedRobotEvent e) {
-		//todo dont shoot if they are too far awyay
-		//adjust shooting by velocity and heading
 		this.lastScanned = e;
 		if (e.getDistance() < ROBOT_CLOSE) {
+			//adjustGunToRobot(e.getHeading(), e.getDistance(), e.getVelocity());
 			fire(2.5);
+		} else if (e.getDistance() > ROBOT_FAR_AWAY ) {
+			//nothing
 		} else {
+			//adjust gun
 			fire(1);
 		}
+	}
+
+	private void adjustGunToRobot(double heading, double distance, double velocity) {
+		double currentX = calculateCurrentX(getX(), getHeading(), distance);
+		double currentY = calculateCurrentY(getY(), getHeading(), distance);
+
+		//todo
+		double estimatedDistance = Math.abs(velocity) + 1;
+
+		double finalX = countFinalXPos(estimatedDistance, currentX, heading);
+		double finalY = countFinalYPos(estimatedDistance, currentY, heading);
+
+		double newDistance = calculateDistanceTo(finalX, finalY);
+
+		double gunMovement = calculateGunMovement(distance, estimatedDistance, newDistance);
+		System.out.println(gunMovement);
+		turnGunRight(gunMovement);
+	}
+
+	private double calculateGunMovement(double x, double y, double z) {
+		System.out.println(x);
+		System.out.println(y);
+		System.out.println(z);
+
+		return Math.acos((x*x+z*z-y*y)/(2*x*z));
+	}
+
+	private double calculateDistanceTo(double finalX, double finalY) {
+		double protilehla = Math.abs(getX() - finalX);
+		double prilehla = Math.abs(getY() - finalY);
+
+		return Math.sqrt(protilehla*protilehla + prilehla*prilehla);
+	}
+
+	private double calculateCurrentX(double x, double heading, double distance) {
+		return countFinalXPos(distance, x, heading);
+	}
+
+	private double calculateCurrentY(double y, double heading, double distance) {
+		return countFinalYPos(distance, y, heading);
 	}
 
 	/**
