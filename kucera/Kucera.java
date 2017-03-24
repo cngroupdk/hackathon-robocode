@@ -14,7 +14,7 @@ public class Kucera extends Robot
 {
 
 	private static final double ROBOT_CLOSE = 150;
-	private static final double ROBOT_FAR_AWAY = 400;
+	private static final double ROBOT_FAR_AWAY = 800;
 	private int OFFSET;
 	private Random rand;
 	Iterator<Integer> dist;
@@ -24,6 +24,8 @@ public class Kucera extends Robot
 	int maxDist = 250;
 	int borderTurn = 220;
 	private ScannedRobotEvent lastScanned = null;
+	private double lastScannedX = 0;
+	private double lastScannedY = 0;
 
 	/**
 	 * run: Kucera's default behavior
@@ -44,19 +46,36 @@ public class Kucera extends Robot
 
 	private void basicRandomizedMovement() {
 		moveAhead();
-		turnGunRight(360);
+		if (lastScanned == null) {
+			turnGunRight(360);
+		} else {
+			turnGunToLastScanned();
+		}
 
 		turn();
 		moveFromWall();
 	}
 
+	private void turnGunToLastScanned() {
+		double angle = getAngleBetween(getX(), getY(), lastScannedX, lastScannedY);
+		double currentHeading = getHeading();
+
+		turnGunLeft(currentHeading - angle);
+	}
+
+	private double getAngleBetween(double x, double y, double lastScannedX, double lastScannedY) {
+		double xDif = x - lastScannedX;
+		double yDif = y - lastScannedY;
+
+		double angle = Math.toDegrees(1.0 / Math.tan(xDif/yDif));
+		return angle;
+	}
+
 	private void turn() {
-		double offset;
-		if (lastScanned != null) {
-			offset = lastScanned.getBearing() + 180;
-		} else {
-			offset = 0;
-		}
+		double offset = 0;
+//		if (lastScanned != null) {
+//			offset = lastScanned.getBearing() + 180;
+//		}
 
 		if (rand.nextBoolean()) {
 			turnRight(angles.next() + offset);
@@ -134,6 +153,8 @@ public class Kucera extends Robot
 	 */
 	public void onScannedRobot(ScannedRobotEvent e) {
 		this.lastScanned = e;
+		this.lastScannedX = calculateCurrentX(getX(), getGunHeading(), e.getDistance());
+		this.lastScannedY = calculateCurrentY(getY(), getGunHeading(), e.getDistance());
 		if (e.getDistance() < ROBOT_CLOSE) {
 			//adjustGunToRobot(e.getHeading(), e.getDistance(), e.getVelocity());
 			fire(2.5);
